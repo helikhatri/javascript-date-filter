@@ -1,0 +1,149 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div style="margin-top: 30px;">
+    <form>
+        <input type="text" id="txtStartDate" placeholder="Start Date" name="startdate" />
+        <br /><br /><input type="text" id="txtEndDate" placeholder="End Date" name="enddate" /><br /><br />
+        <select id="drpDays">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wedday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Satday</option>
+        </select><br /><br />
+        <br />
+        <input type="radio" name="rdbtnDays" value="1" /> Alternate date
+        <input type="radio" name="rdbtnDays" value="2" /> Working days
+        <input type="radio" name="rdbtnDays" value="3" /> First last date
+        <br /><br />
+        <input type="button" value="Search" onclick="displayData()" />
+        <br /><br />
+        <textarea id="txtAlternatedate" rows="5%" cols="10%" style="display:none"></textarea>
+        <span id="spnWorking" style="display:none">Total Working: <span id="intDays"></span></span>
+        <textarea id="txtFirstLastdate" rows="5%" cols="10%" style="display:none"></textarea>
+
+    </form>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css" />
+<script>
+    $(document).ready(function () {
+        $.noConflict(true);
+        $('#txtStartDate').datepicker();
+        $('#txtEndDate').datepicker();
+    });
+
+</script>
+<script type="text/javascript">
+    function displayData() {
+        var startDate = $("#txtStartDate").val();
+        var endDate = $("#txtEndDate").val();
+        var Days = $("#drpDays").val();
+        var selectedOption = $("input:radio[name=rdbtnDays]:checked").val();
+        var date = new Date(startDate);
+        var newenddate = new Date(endDate);
+        var newdate = new Date(date);
+        var result = new Date(startDate);
+
+        if (selectedOption == "1") {
+            $('#txtFirstLastdate').css("display", "none");
+            $('#spnWorking').css("display", "none");
+            result.setDate(result.getDate() + parseInt(Days));
+
+            const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+            const firstDate = new Date(startDate);
+            const secondDate = new Date(endDate);
+            const diffDays = Math.round(Math.abs((firstDate - secondDate) / oneDay));
+            var str = "";
+            var j = 12;
+            for (var i = 0; i < ((diffDays / 14) - 1); i++) {
+                var res = new Date();
+                res.setDate(new Date(result).getDate() + j);
+
+                var someFormattedDate = ConvertRazorToDate(res);
+                if (str == "") {
+                   // str = ConvertRazorToDate(result) + "\n" + someFormattedDate;
+                    str =  someFormattedDate;
+
+                }
+                else {
+                    str = str + "\n" + someFormattedDate;
+
+                }
+                $('#txtAlternatedate').css("display", "block");
+                $('#txtAlternatedate').val(str);
+                j = j + 14;
+            }
+
+        }
+        if (selectedOption == "2") {
+            $('#txtAlternatedate').css("display", "none");
+            $('#txtFirstLastdate').css("display", "none");
+            var result = 0;
+
+            var currentDate = date;
+            while (currentDate <= newenddate) {
+
+                var weekDay = currentDate.getDay();
+                if (weekDay != 0 && weekDay != 6)
+                    result++;
+
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            $('#spnWorking').css("display", "block");
+            $('#intDays').html(result);
+        }
+        if (selectedOption == "3") {
+            $('#spnWorking').css("display", "none");
+            $('#txtAlternatedate').css("display", "none");
+            $('#txtFirstLastdate').css("display", "block");
+           
+            var str = "";
+            var r = Math.abs((date.getFullYear() * 12 + date.getMonth()) - (newenddate.getFullYear() * 12 + newenddate.getMonth()));
+            var count = r;
+            for (var i = 0; i <= r; i++) {
+                y = date.getFullYear(),
+                m = date.getMonth();
+                firstDay = ConvertRazorToDate(new Date(y, m, 1));
+                lastDay = ConvertRazorToDate(new Date(y, m + 1, 0));
+                if (str == "") {
+                    str = (firstDay == ConvertRazorToDate(date) ? firstDay : "") + "\n" + lastDay;
+                }
+                else {
+                    str = str + "\n" + firstDay + (count == i && lastDay == ConvertRazorToDate(newenddate) ? "\n" + lastDay : count != i && lastDay != ConvertRazorToDate(newenddate) ? "\n" +  lastDay: "");
+                }
+
+                y = date.getFullYear(),
+                m = date.getMonth();
+                date = new Date(y, m + 1, 1);
+                // date.setDate(new Date(date).getMonth() + 1);
+            }
+            $('#txtFirstLastdate').val(str);
+
+        }
+    }
+    function ConvertRazorToDate(date) {
+        if (date != null) {
+            var value = date;
+            var d = value.getDate();
+            var m = value.getMonth() + 1;
+            var y = value.getFullYear();
+            if (d < 10) {
+                d = '0' + d;
+            }
+            if (m < 10) {
+                m = '0' + m;
+            }
+            return d + '/' + m + '/' + y;
+        }
+        else {
+            return '';
+        }
+    }
+</script>
